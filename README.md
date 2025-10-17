@@ -7,8 +7,6 @@ This repository implements a **basic framework** for your distributed systems pr
 
 Both architectures include **≥ 5 containerized nodes** (Docker) and scripts to **benchmark throughput and latency** under varying workloads. You will plug in your **challenge rules, datasets, inference/evaluation code** later.
 
-> ⚠️ This is a teaching scaffold. It focuses on the distributed-system plumbing: service boundaries, inter-service comms, simple data flow, basic scheduler/worker pattern, consistency hook, and metrics collection.
-
 ---
 ## Functional Requirements (covered)
 
