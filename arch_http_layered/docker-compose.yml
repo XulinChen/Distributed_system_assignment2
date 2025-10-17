@@ -1,0 +1,51 @@
+version: "2.4"
+
+services:
+  api-gateway:
+    build: ./services/api_gateway
+    ports:
+      - "8080:8080"
+    environment:
+      - CHALLENGE_URL=http://challenge:8001
+      - AUTH_URL=http://auth:8000
+      - SCHEDULER_URL=http://scheduler:8002
+      - EVALUATOR_URL=http://evaluator:8004
+      - LEADERBOARD_URL=http://leaderboard:8005
+    depends_on:
+      - auth
+      - challenge
+      - scheduler
+      - evaluator
+      - leaderboard
+
+  auth:
+    build: ./services/auth
+    ports:
+      - "8000:8000"
+
+  challenge:
+    build: ./services/challenge
+    ports:
+      - "8001:8001"
+
+  scheduler:
+    build: ./services/scheduler
+    ports:
+      - "8002:8002"
+    environment:
+      - WORKER_URL=http://worker:8003
+
+  worker:
+    build: ./services/worker
+    ports:
+      - "8003:8003"
+
+  evaluator:
+    build: ./services/evaluator
+    ports:
+      - "8004:8004"
+
+  leaderboard:
+    build: ./services/leaderboard
+    ports:
+      - "8005:8005"

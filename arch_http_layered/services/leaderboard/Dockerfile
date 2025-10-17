@@ -1,0 +1,7 @@
+FROM python:3.8-buster
+WORKDIR /app
+COPY requirements.txt /app/requirements.txt
+RUN pip install --no-cache-dir --progress-bar off -r requirements.txt
+COPY app.py /app/app.py
+EXPOSE 8005
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8005"]

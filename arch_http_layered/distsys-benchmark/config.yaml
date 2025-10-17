@@ -1,0 +1,22 @@
+# Benchmark configuration for the distributed system API gateway
+# Target endpoint (adjust if needed)
+target_url: "http://localhost:8080/submit"
+
+# Authentication / request payload parameters
+token: "6fb33ff2-dfd9-471f-8e7a-4f90e8618fd4"            # <-- fill in if your gateway requires a token
+challenge_id: "31aac5a4-2c4b-4775-8e54-4eecba1812f9"     # <-- fill in challenge/task id if required by your platform
+payload:
+  artifact: "demo_model_v1"
+
+# Workload model
+warmup_requests: 50          # requests sent (at max concurrency) before measurements start
+requests_per_level: 500      # measured requests per concurrency level
+concurrency_levels: [1, 2, 4, 8, 16, 32, 64]  # tweak to match your system capacity
+timeout_seconds: 30          # per request timeout
+
+# Output / run labeling
+run_label: "baseline"
+output_dir: "./runs"         # results will be written here
+
+# Optional: custom headers
+headers: {}
