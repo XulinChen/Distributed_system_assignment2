@@ -1,77 +1,42 @@
 #!/usr/bin/env python3
-import argparse, csv, os, math
-from collections import defaultdict
-import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
+import seaborn as sns
+import argparse, os
 
-def read_summary(path):
-    rows = []
-    with open(path, "r") as f:
-        r = csv.DictReader(f)
-        for row in r:
-            row = {k: try_num(v) for k,v in row.items()}
-            rows.append(row)
-    return rows
+sns.set(style="whitegrid", font_scale=1.2)
 
-def try_num(x):
-    try:
-        if "." in x:
-            return float(x)
-        return int(x)
-    except Exception:
-        return x
-
-def plot_xy(xs, ys, xlabel, ylabel, title, out_path):
-    plt.figure()
-    plt.plot(xs, ys, marker="o")
-    plt.xlabel(xlabel)
-    plt.ylabel(ylabel)
+def plot_metric(df, metric, ylabel, title, outfile):
+    plt.figure(figsize=(8,6))
+    sns.lineplot(
+        data=df, x="concurrency", y=metric, hue="run_label", marker="o", linewidth=2
+    )
     plt.title(title)
-    plt.grid(True, linestyle="--", linewidth=0.5)
+    plt.xlabel("Concurrency Level")
+    plt.ylabel(ylabel)
+    plt.legend(title="Service", loc="best")
     plt.tight_layout()
-    plt.savefig(out_path, dpi=160)
+    plt.savefig(outfile, dpi=160)
+    print(f"[saved] {outfile}")
     plt.close()
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--summary", required=True, help="Path to *_summary.csv")
-    ap.add_argument("--outdir", default="./runs")
-    ap.add_argument("--run_label", default="baseline")
+    ap.add_argument("--csv", default="./bench_runs/combined_summary.csv")
+    ap.add_argument("--outdir", default="./bench_plots")
     args = ap.parse_args()
-
     os.makedirs(args.outdir, exist_ok=True)
-    rows = read_summary(args.summary)
-    rows = sorted(rows, key=lambda r: r["concurrency"])
 
-    conc = [r["concurrency"] for r in rows]
-    thr = [r["throughput_rps"] for r in rows]
-    p95 = [r["latency_p95_ms"] for r in rows]
-    err = [100.0 * r["errors"]/max(1,r["requests"]) for r in rows]
-
-    plot_xy(conc, thr, "Concurrency", "Throughput (req/s)",
-            f"Throughput vs Concurrency ({args.run_label})",
-            os.path.join(args.outdir, f"{args.run_label}_throughput.png"))
-    plot_xy(conc, p95, "Concurrency", "p95 Latency (ms)",
-            f"p95 Latency vs Concurrency ({args.run_label})",
-            os.path.join(args.outdir, f"{args.run_label}_p95_latency.png"))
-    plot_xy(conc, err, "Concurrency", "Error Rate (%)",
-            f"Error Rate vs Concurrency ({args.run_label})",
-            os.path.join(args.outdir, f"{args.run_label}_error_rate.png"))
-
-    # Write a cleaned summary CSV with extra columns
-    out_csv = os.path.join(args.outdir, f"{args.run_label}_summary_clean.csv")
-    with open(out_csv, "w", newline="") as f:
-        w = csv.DictWriter(f, fieldnames=[
-            "concurrency","requests","ok","errors","elapsed_s","throughput_rps",
-            "latency_avg_ms","latency_p50_ms","latency_p95_ms","latency_p99_ms","error_rate_pct"
-        ])
-        w.writeheader()
-        for r in rows:
-            r2 = {k:r[k] for k in w.fieldnames if k in r}
-            r2["error_rate_pct"] = 100.0 * r["errors"]/max(1,r["requests"])
-            w.writerow(r2)
-
-    print("Wrote plots and cleaned summary to", args.outdir)
+    df = pd.read_csv(args.csv)
+    metrics = [
+        ("throughput_rps", "Throughput (req/s)", "Throughput vs Concurrency"),
+        ("latency_avg_ms", "Average Latency (ms)", "Average Latency vs Concurrency"),
+        ("latency_p95_ms", "P95 Latency (ms)", "95th Percentile Latency vs Concurrency"),
+        ("latency_p99_ms", "P99 Latency (ms)", "99th Percentile Latency vs Concurrency"),
+    ]
+    for metric, ylabel, title in metrics:
+        outfile = os.path.join(args.outdir, f"{metric}.png")
+        plot_metric(df, metric, ylabel, title, outfile)
 
 if __name__ == "__main__":
     main()

@@ -1,0 +1,62 @@
+base_url: "http://localhost:8080"
+timeout_seconds: 30
+output_dir: "./bench_runs"
+headers: {}
+
+runs:
+  - name: create_challenge
+    method: POST
+    path: /challenges
+    json_body:
+      token: ""  # the token obtained by the login step
+      title: "Bench Challenge"
+      description: "benchmark"
+    concurrency_levels: [1, 2, 4, 8, 16]
+    requests_per_level: 50
+    warmup_requests: 5
+
+  - name: submit
+    method: POST
+    path: /submit
+    json_body:
+      token: "" # the token obtained by the login step
+      challenge_id: "" # the token obtained by creating challenge step
+      artifact: "demo_model_v1"
+    concurrency_levels: [1, 2, 4, 8, 16, 32]
+    requests_per_level: 100
+    warmup_requests: 10
+
+  - name: evaluate
+    method: POST
+    path: /evaluate
+    json_body:
+      submission_id: "" # the token obtained by the submission step
+      challenge_id: "" # the token obtained by creating challenge step
+    concurrency_levels: [1, 2, 4, 8, 16, 32]
+    requests_per_level: 100
+    warmup_requests: 10
+
+  - name: list_submissions
+    method: GET
+    path: /submissions
+    query:
+      challenge_id: "" # the token obtained by creating challenge step
+    concurrency_levels: [1, 2, 4, 8, 16, 32]
+    requests_per_level: 100
+    warmup_requests: 10
+
+  - name: leaderboard_get
+    method: GET
+    path: /leaderboard
+    query:
+      challenge_id: "" # the token obtained by creating challenge step
+    concurrency_levels: [1, 2, 4, 8, 16, 32]
+    requests_per_level: 100
+    warmup_requests: 10
+
+  - name: list_challenges
+    method: GET
+    path: /challenges
+    concurrency_levels: [1, 2, 4, 8, 16, 32]
+    requests_per_level: 100
+    warmup_requests: 10

@@ -1,0 +1,75 @@
+syntax = "proto3";
+package mlplatform;
+
+message Empty {}
+
+message User {
+  string id = 1;
+  string username = 2;
+}
+
+message RegisterRequest { string username = 1; string password = 2; }
+message RegisterResponse { bool ok = 1; string message = 2; User user = 3; }
+
+message LoginRequest { string username = 1; string password = 2; }
+message LoginResponse { bool ok = 1; string message = 2; string token = 3; User user = 4; }
+
+message ValidateTokenRequest { string token = 1; }
+message ValidateTokenResponse { bool ok = 1; string message = 2; User user = 3; }
+
+message CreateChallengeRequest { string token = 1; string title = 2; string description = 3; }
+message Challenge {
+  string id = 1;
+  string title = 2;
+  string description = 3;
+  string owner_user_id = 4;
+}
+message CreateChallengeResponse { bool ok = 1; string message = 2; Challenge challenge = 3; }
+message ListChallengesRequest {}
+message ListChallengesResponse { repeated Challenge items = 1; }
+
+message SubmitModelRequest { string token = 1; string challenge_id = 2; string artifact = 3; }
+message Submission {
+  string id = 1;
+  string challenge_id = 2;
+  string user_id = 3;
+  string artifact = 4;
+}
+message SubmitModelResponse { bool ok = 1; string message = 2; Submission submission = 3; }
+message ListSubmissionsRequest { string challenge_id = 1; }
+message ListSubmissionsResponse { repeated Submission items = 1; }
+
+message EvaluateRequest { string submission_id = 1; string challenge_id = 2; }
+message EvaluateResponse { bool ok = 1; string message = 2; string submission_id = 3; double score = 4; }
+
+message UpdateScoreRequest { string submission_id = 1; double score = 2; string challenge_id = 3; }
+message UpdateScoreResponse { bool ok = 1; string message = 2; }
+
+message GetLeaderboardRequest { string challenge_id = 1; }
+message LeaderboardEntry { string submission_id = 1; double score = 2; }
+message GetLeaderboardResponse { repeated LeaderboardEntry entries = 1; }
+
+service AuthService {
+  rpc Register(RegisterRequest) returns (RegisterResponse);
+  rpc Login(LoginRequest) returns (LoginResponse);
+  rpc ValidateToken(ValidateTokenRequest) returns (ValidateTokenResponse);
+}
+
+service ChallengeService {
+  rpc CreateChallenge(CreateChallengeRequest) returns (CreateChallengeResponse);
+  rpc ListChallenges(ListChallengesRequest) returns (ListChallengesResponse);
+}
+
+service SubmissionService {
+  rpc SubmitModel(SubmitModelRequest) returns (SubmitModelResponse);
+  rpc ListSubmissions(ListSubmissionsRequest) returns (ListSubmissionsResponse);
+}
+
+service EvaluatorService {
+  rpc Evaluate(EvaluateRequest) returns (EvaluateResponse);
+}
+
+service LeaderboardService {
+  rpc UpdateScore(UpdateScoreRequest) returns (UpdateScoreResponse);
+  rpc GetLeaderboard(GetLeaderboardRequest) returns (GetLeaderboardResponse);
+}

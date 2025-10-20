@@ -1,22 +1,46 @@
-# Benchmark configuration for the distributed system API gateway
-# Target endpoint (adjust if needed)
-target_url: "http://localhost:8080/submit"
+# ============================================================
+# Benchmark configuration for HTTP + Layered architecture
+# Supports multi-service benchmarking (register, submit, evaluate, leaderboard)
+# ============================================================
 
-# Authentication / request payload parameters
-token: "6fb33ff2-dfd9-471f-8e7a-4f90e8618fd4"            # <-- fill in if your gateway requires a token
-challenge_id: "31aac5a4-2c4b-4775-8e54-4eecba1812f9"     # <-- fill in challenge/task id if required by your platform
-payload:
-  artifact: "demo_model_v1"
+output_dir: ./bench_runs
+timeout_seconds: 20
 
-# Workload model
-warmup_requests: 50          # requests sent (at max concurrency) before measurements start
-requests_per_level: 500      # measured requests per concurrency level
-concurrency_levels: [1, 2, 4, 8, 16, 32, 64]  # tweak to match your system capacity
-timeout_seconds: 30          # per request timeout
+runs:
+  # ----------------------------------------------------------
+  - name: register
+    url: http://localhost:8080/register
+    json_body:
+      username: "your_name"  # the name you input in the register step
+      password: "your_password"  # the password you input in the register step
+    concurrency_levels: [1, 2, 4, 8]
+    requests_per_level: 50
 
-# Output / run labeling
-run_label: "baseline"
-output_dir: "./runs"         # results will be written here
+  # ----------------------------------------------------------
+  - name: submit
+    url: http://localhost:8080/submit
+    json_body:
+      token: "" # the token of your account obtained by the login step
+      challenge_id: "" # the token of the challenge obtained by the challenge create step
+      payload:
+        artifact: "demo_model_v1"
+    concurrency_levels: [1, 2, 4, 8]
+    requests_per_level: 50
 
-# Optional: custom headers
-headers: {}
+  # ----------------------------------------------------------
+  - name: evaluate
+    url: http://localhost:8080/evaluate
+    json_body:
+      submission_id: "" # the token of submission obtained by the submission step
+      challenge_id: "" # the token of the challenge obtained by the challenge create step
+      # pred, float value
+      pred: 0.7
+    concurrency_levels: [1, 2, 4, 8]
+    requests_per_level: 50
+
+  # ----------------------------------------------------------
+  - name: leaderboard
+    url: http://localhost:8080/leaderboard?challenge_id=  # the token of the challenge obtained by the challenge create step
+    json_body: {}
+    concurrency_levels: [1, 2, 4, 8]
+    requests_per_level: 50

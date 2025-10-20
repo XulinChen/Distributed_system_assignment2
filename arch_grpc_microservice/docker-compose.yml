@@ -1,0 +1,90 @@
+version: "3.9"
+services:
+  auth:
+    build:
+      context: .
+      dockerfile: ./auth_service/Dockerfile
+    container_name: auth
+    environment:
+      - DB_PATH=/data/auth.db
+      - PORT=50051
+    volumes:
+      - auth_data:/data
+    ports:
+      - "50051:50051"
+
+  challenge:
+    build:
+      context: .
+      dockerfile: ./challenge_service/Dockerfile
+    container_name: challenge
+    environment:
+      - DB_PATH=/data/challenge.db
+      - PORT=50052
+    volumes:
+      - challenge_data:/data
+    ports:
+      - "50052:50052"
+    depends_on:
+      - auth
+
+  submission:
+    build:
+      context: .
+      dockerfile: ./submission_service/Dockerfile
+    container_name: submission
+    environment:
+      - DB_PATH=/data/submission.db
+      - PORT=50053
+    volumes:
+      - submission_data:/data
+    ports:
+      - "50053:50053"
+    depends_on:
+      - auth
+      - challenge
+
+  leaderboard:
+    build:
+      context: .
+      dockerfile: ./leaderboard_service/Dockerfile
+    container_name: leaderboard
+    ports:
+      - "50055:50055"
+
+  evaluator:
+    build:
+      context: .
+      dockerfile: ./evaluator_service/Dockerfile
+    container_name: evaluator
+    environment:
+      - LEADERBOARD_ADDR=leaderboard:50055
+    depends_on:
+      - leaderboard
+    ports:
+      - "50054:50054"
+
+  api_gateway:
+    build:
+      context: .
+      dockerfile: ./api_gateway/Dockerfile
+    container_name: api_gateway
+    environment:
+      - AUTH_ADDR=auth:50051
+      - CHALLENGE_ADDR=challenge:50052
+      - SUBMISSION_ADDR=submission:50053
+      - EVALUATOR_ADDR=evaluator:50054
+      - LEADERBOARD_ADDR=leaderboard:50055
+    depends_on:
+      - auth
+      - challenge
+      - submission
+      - evaluator
+      - leaderboard
+    ports:
+      - "8080:8080"
+
+volumes:
+  auth_data:
+  challenge_data:
+  submission_data:

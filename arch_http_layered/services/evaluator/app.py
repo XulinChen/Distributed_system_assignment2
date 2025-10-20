@@ -9,13 +9,14 @@ app = FastAPI(title="Evaluator (HTTP)")
 class EvalReq(BaseModel):
     submission_id: str
     challenge_id: str
-    pred: list
+    pred: float
+
 
 @app.post("/evaluate")
 def evaluate(e: EvalReq):
     # Simulate metric computation
     time.sleep(0.02)
-    score = sum(e.pred) / max(len(e.pred), 1)
+    score = e.pred+0.5
     # Update leaderboard
     requests.post(f"{LEADERBOARD_URL}/update", json={"challenge_id": e.challenge_id, "submission_id": e.submission_id, "score": score})
     return {"score": score}
